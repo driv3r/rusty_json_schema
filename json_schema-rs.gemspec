@@ -1,26 +1,26 @@
 # frozen_string_literal: true
 
-require_relative "lib/jsonschema/version"
+require_relative "lib/json_schema/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "jsonschema-rs"
+  spec.name          = "json_schema-rs"
   spec.version       = JsonSchema::VERSION
   spec.authors       = ["Leszek Zalewski"]
   spec.email         = ["leszekzalewski@fastmail.fm"]
 
-  spec.summary       = "FFI wrapper around jsonschema-rs rust library."
+  spec.summary       = "FFI wrapper around json_schema-rs rust library."
   spec.description   = spec.summary
-  spec.homepage      = "https://github.com/driv3r/jsonschema-rb"
+  spec.homepage      = "https://github.com/driv3r/json_schema-rs"
   spec.license       = "MIT"
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
-  spec.metadata["changelog_uri"] = "https://github.com/driv3r/jsonschema-rb/blob/main/CHANGELOG.md"
+  spec.metadata["changelog_uri"] = "https://github.com/driv3r/json_schema-rs/blob/main/CHANGELOG.md"
 
-  spec.files = Dir["lib/**/*", "src/**/*.rs", "jsonschema-rs.gemspec", "Cargo.toml", "LICENSE", "README.md"]
+  spec.files = Dir["lib/**/*", "src/**/*.rs", "json_schema-rs.gemspec", "Cargo.toml", "LICENSE", "README.md"]
 
   spec.require_paths = ["lib"]
 

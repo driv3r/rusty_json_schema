@@ -6,6 +6,10 @@ AllCops:
   TargetRubyVersion: 2.5
   NewCops: enable
 
+Naming/FileName:
+  Exclude:
+    - lib/json_schema-rs.rb
+
 Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes
@@ -13,6 +17,12 @@ Style/StringLiterals:
 Style/StringLiteralsInInterpolation:
   Enabled: true
   EnforcedStyle: double_quotes
+
+Layout/EmptyLinesAroundClassBody:
+  EnforcedStyle: empty_lines
+
+Layout/EmptyLinesAroundModuleBody:
+  EnforcedStyle: empty_lines
 
 Layout/LineLength:
   Max: 120

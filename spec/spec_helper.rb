@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "jsonschema-rs"
+require "json_schema-rs"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
