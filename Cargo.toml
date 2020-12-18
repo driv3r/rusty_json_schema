@@ -1,0 +1,10 @@
+[package]
+name = "jsonschema"
+version = "0.1.0"
+authors = ["Leszek Zalewski <leszekzalewski@fastmail.fm>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
