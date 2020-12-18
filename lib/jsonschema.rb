@@ -2,7 +2,7 @@
 
 require_relative "jsonschema/version"
 
-module Jsonschema
+module JsonSchema
   class Error < StandardError; end
   # Your code goes here...
 end
