@@ -100,7 +100,7 @@ jobs:
 
     - name: Styling
       run: |
-        bundle exec rubocop --display-cops
+        bundle exec rubocop --display-cop-names
 
     - name: Tests
       run: |
