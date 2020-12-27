@@ -108,7 +108,7 @@ jobs:
 
     - name: Build gem
       run: |
-        gem build json_schema-rs.gemspec --output=json_schema-rs.gem
+        gem build json_schema-rs.gemspec --output json_schema-rs.gem
 
     - uses: actions/upload-artifact@v2
       with:
