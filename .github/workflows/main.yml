@@ -1,18 +1,139 @@
 name: Ruby
 
-on: [push,pull_request]
+on: [push]
 
 jobs:
+  # borrowed from https://github.com/bytecodealliance/cargo-wasi/
+  # workflow setup
+  cross_compile:
+    strategy:
+      matrix:
+        target:
+          - x86_64-apple-darwin
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            ext: so
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            ext: dylib
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            ext: dll
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            override: true
+            target: ${{ matrix.target }}
+
+      # Target older versions of OSX (as old as we reasonably can) to ensure we
+      # can run across a wide variety of systems.
+      - name: Configure OSX deployment target
+        if: matrix.os == 'macos-latest'
+        run: |
+          echo MACOSX_DEPLOYMENT_TARGET=10.7 >> $GITHUB_ENV
+
+      - name: Test
+        run: |
+          cargo test
+
+      - name: Compile
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+
+      - uses: actions/upload-artifact@v2
+        if: ${{ matrix.os != 'windows-latest' }}
+        with:
+          name: json_schema-rs-${{ matrix.os }}
+          path: target/${{ matrix.target }}/release/libjson_schema.*
+
+      - uses: actions/upload-artifact@v2
+        if: ${{ matrix.os == 'windows-latest' }}
+        with:
+          name: json_schema-rs-${{ matrix.os }}
+          path: target\${{ matrix.target }}\release\json_schema.*
+
   build:
     runs-on: ubuntu-latest
+
+    needs: [cross_compile]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      with:
+        path: vendor/bundle
+        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-ruby-2.5.0
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+
+    - uses: actions/download-artifact@v2
+      with:
+        path: dist/
+
+    - name: Move libs to gem
+      run: |
+        mv dist/json_schema-rs-macos-latest/* lib/ext/
+        mv dist/json_schema-rs-ubuntu-latest/* lib/ext/
+        mv dist/json_schema-rs-windows-latest/* lib/ext/
+
+    - name: Prep gems
+      run: |
+        gem install bundler -v 2.2.3
+        bundle install --path vendor/bundle
+
+    - name: Styling
+      run: |
+        bundle exec rubocop --display-cops
+
+    - name: Tests
+      run: |
+        bundle exec rspec
+
+    - name: Build gem
+      run: |
+        gem build json_schema-rs.gemspec --output=json_schema-rs.gem
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: json_schema-rs.gem
+        path: json_schema-rs.gem
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+    needs: [build]
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
+    - uses: actions/download-artifact@v2
       with:
-        ruby-version: 2.7.1
-    - name: Run the default task
+        name: json_schema-rs.gem
+    - name: Install gem
       run: |
-        gem install bundler -v 2.2.0
-        bundle install
-        bundle exec rake
+        gem install json_schema-rs.gem
+    - name: Test gem against platform
+      run: |
+        bin/integration
