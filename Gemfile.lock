@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     rusty_json_schema (0.1.0)
-      ffi
+      ffi (~> 1.14)
 
 GEM
   remote: https://rubygems.org/
