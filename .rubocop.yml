@@ -6,10 +6,6 @@ AllCops:
   TargetRubyVersion: 2.5
   NewCops: enable
 
-Naming/FileName:
-  Exclude:
-    - lib/json_schema-rs.rb
-
 Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes

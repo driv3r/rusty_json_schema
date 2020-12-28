@@ -1,4 +1,12 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "json_schema-rs"
+require "rusty_json_schema"
+
+schema = File.read("spec/fixtures/canada_schema.json")
+event = File.read("spec/fixtures/canada.json")
+
+exit 0 if RustyJSONSchema.build(schema).valid?(event)
+
+echo "Something isn't right"
+exit 1

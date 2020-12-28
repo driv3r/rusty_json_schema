@@ -59,13 +59,13 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: ${{ matrix.os != 'windows-latest' }}
         with:
-          name: json_schema-rs-${{ matrix.os }}
+          name: rusty_json_schema-${{ matrix.os }}
           path: target/${{ matrix.target }}/release/libjson_schema.*
 
       - uses: actions/upload-artifact@v2
         if: ${{ matrix.os == 'windows-latest' }}
         with:
-          name: json_schema-rs-${{ matrix.os }}
+          name: rusty_json_schema-${{ matrix.os }}
           path: target\${{ matrix.target }}\release\json_schema.*
 
   build:
@@ -89,9 +89,9 @@ jobs:
 
     - name: Move libs to gem
       run: |
-        mv dist/json_schema-rs-macos-latest/* lib/ext/
-        mv dist/json_schema-rs-ubuntu-latest/* lib/ext/
-        mv dist/json_schema-rs-windows-latest/* lib/ext/
+        mv dist/rusty_json_schema-macos-latest/* lib/ext/
+        mv dist/rusty_json_schema-ubuntu-latest/* lib/ext/
+        mv dist/rusty_json_schema-windows-latest/* lib/ext/
 
     - name: Prep gems
       run: |
@@ -112,7 +112,7 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: json_schema-rs.gem
+        name: rusty_json_schema.gem
         path: "*.gem"
 
   test:
@@ -130,7 +130,7 @@ jobs:
       uses: ruby/setup-ruby@v1
     - uses: actions/download-artifact@v2
       with:
-        name: json_schema-rs.gem
+        name: rusty_json_schema.gem
     - name: Install gem
       run: |
         gem install *.gem
