@@ -1,6 +1,8 @@
 # json_schema-rs
 
-FFI wrapper around json_schema-rs rust library.
+FFI wrapper around [`jsonschema`](https://github.com/Stranger6667/jsonschema-rs) rust library. Props go to original project.
+
+Currently during heavy development.
 
 ## Installation
 
@@ -20,7 +22,17 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Initialize schema validator
+
+```ruby
+validator = JsonSchema.build(json_schema)
+```
+
+Validate events like
+
+```ruby
+validator.valid?(event_json)
+```
 
 ## Development
 

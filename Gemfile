@@ -5,6 +5,9 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in jsonschema.gemspec
 gemspec
 
+gem "benchmark-ips", require: false
+gem "json_schemer", require: false
+
 gem "rake", "~> 13.0"
 gem "rspec", "~> 3.0"
 gem "rubocop", "~> 1.6"
