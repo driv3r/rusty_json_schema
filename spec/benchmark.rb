@@ -2,8 +2,9 @@
 
 require "benchmark/ips"
 require "json_schemer"
-require "json_schema-rs"
+require "rusty_json_schema"
 require "json"
+
 big_schema = File.read("spec/fixtures/canada_schema.json")
 big_schema_hash = JSON.parse(big_schema)
 big_event = File.read("spec/fixtures/canada.json")
@@ -16,9 +17,9 @@ small_event_hash = JSON.parse(small_event)
 small_invalid_event = File.read("spec/fixtures/small_invalid.json")
 small_invalid_event_hash = JSON.parse(small_invalid_event)
 
-big_validator = JsonSchema.build(big_schema)
+big_validator = RustyJSONSchema.build(big_schema)
 big_schemer = JSONSchemer.schema(big_schema_hash)
-small_validator = JsonSchema.build(small_schema)
+small_validator = RustyJSONSchema.build(small_schema)
 small_schemer = JSONSchemer.schema(small_schema_hash)
 
 Benchmark.ips do |x|

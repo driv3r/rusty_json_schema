@@ -2,20 +2,20 @@
 
 require "ffi"
 
-require_relative "json_schema/version"
+require_relative "rusty_json_schema/version"
 
-# Json Schema validation
+# JSON Schema validation
 #
 # ## Example
 #
-#     validator = JsonSchema.build(schema) # where schema is a json string of the schema
+#     validator = RustyJSONSchema.build(schema) # where schema is a json string of the schema
 #     validator.valid?(event) # where event is a json string of schema
 #     # => true/false
 #
-module JsonSchema
+module RustyJSONSchema
 
   def self.build(schema)
-    JsonSchema::Validator::Binding.new(schema)
+    RustyJSONSchema::Validator::Binding.new(schema)
   end
 
   class Error < StandardError; end

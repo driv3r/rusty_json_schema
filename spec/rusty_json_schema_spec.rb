@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-RSpec.describe JsonSchema do
+RSpec.describe RustyJSONSchema do
   let(:schema) { File.read("spec/fixtures/canada_schema.json") }
   let(:event) { File.read("spec/fixtures/canada.json") }
 
   it "has a version number" do
-    expect(JsonSchema::VERSION).not_to be nil
+    expect(RustyJSONSchema::VERSION).not_to be nil
   end
 
   describe ".build" do
     it "returns new validator" do
-      expect(described_class.build(schema)).to be_a JsonSchema::Validator
+      expect(described_class.build(schema)).to be_a RustyJSONSchema::Validator
     end
   end
 

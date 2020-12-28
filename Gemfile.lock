@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    json_schema-rs (0.1.0)
-      ffi
+    rusty_json_schema (0.1.0)
+      ffi (~> 1.14)
 
 GEM
   remote: https://rubygems.org/
@@ -66,13 +66,13 @@ PLATFORMS
 
 DEPENDENCIES
   benchmark-ips
-  json_schema-rs!
   json_schemer
   rake (~> 13.0)
   rspec (~> 3.0)
   rubocop (~> 1.6)
   rubocop-performance (~> 1.9)
   rubocop-rspec (~> 2.1)
+  rusty_json_schema!
 
 BUNDLED WITH
    2.2.3

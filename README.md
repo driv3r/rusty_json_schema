@@ -1,4 +1,4 @@
-# json_schema-rs
+# RustyJSONSchema
 
 FFI wrapper around [`jsonschema`](https://github.com/Stranger6667/jsonschema-rs) rust library. Props go to original project.
 
@@ -9,7 +9,7 @@ Currently during heavy development.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "json_schema-rs"
+gem "rusty_json_schema"
 ```
 
 And then execute:
@@ -18,14 +18,14 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install json_schema-rs
+    $ gem install rusty_json_schema
 
 ## Usage
 
 Initialize schema validator
 
 ```ruby
-validator = JsonSchema.build(json_schema)
+validator = RustyJSONSchema.build(json_schema)
 ```
 
 Validate events like
@@ -42,7 +42,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/driv3r/json_schema-rs. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/driv3r/json_schema-rs/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/driv3r/rusty_json_schema. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/driv3r/rusty_json_schema/blob/master/CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -50,4 +50,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the JsonSchema project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/driv3r/json_schema-rs/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the RustyJSONSchema project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/driv3r/rusty_json_schema/blob/master/CODE_OF_CONDUCT.md).
