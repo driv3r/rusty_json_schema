@@ -27,19 +27,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
             override: true
             target: ${{ matrix.target }}
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-v1-${{ hashFiles('**/Cargo.lock') }}
 
       # Target older versions of OSX (as old as we reasonably can) to ensure we
       # can run across a wide variety of systems.
