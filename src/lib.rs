@@ -1,8 +1,12 @@
+extern crate libc;
+
 use jsonschema::JSONSchema;
 use serde_json::Value;
 
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
+
+use libc::size_t;
 
 /*
  * Our wrapper struct for schema and schema value,
@@ -33,6 +37,20 @@ impl Validator {
     fn is_valid(&self, event: &Value) -> bool {
         self.schema.is_valid(event)
     }
+
+    fn validate(&self, event: &Value) -> Vec<*const c_char> {
+        let mut errors: Vec<*const c_char> = vec![];
+
+        if let Err(validation_errors) = self.schema.validate(event) {
+            for error in validation_errors {
+                if let Ok(c_string) = CString::new(error.to_string()) {
+                    errors.push(c_string.into_raw());
+                }
+            }
+        }
+
+        errors
+    }
 }
 
 impl Drop for Validator {
@@ -45,6 +63,27 @@ impl Drop for Validator {
             Box::from_raw(self.schema as *const _ as *mut JSONSchema);
             Box::from_raw(self.schema_value as *const _ as *mut Value);
         }
+    }
+}
+
+#[repr(C)]
+pub struct Array {
+    len: libc::size_t,
+    data: *const libc::c_void,
+}
+
+impl Array {
+    fn from_vec<T>(mut vec: Vec<T>) -> Array {
+        vec.shrink_to_fit();
+
+        let array = Array {
+            data: vec.as_ptr() as *const libc::c_void,
+            len: vec.len() as libc::size_t
+        };
+
+        std::mem::forget(vec);
+
+        array
     }
 }
 
@@ -86,6 +125,20 @@ pub extern "C" fn validator_is_valid(ptr: *const Validator, event: *const c_char
     let event: Value = serde_json::from_slice(raw_event.to_bytes()).unwrap();
 
     validator.is_valid(&event)
+}
+
+#[no_mangle]
+pub extern "C" fn validator_validate(ptr: *const Validator, event: *const c_char) -> Array {
+    let validator = unsafe {
+        assert!(!ptr.is_null());
+        &*ptr
+    };
+
+    let raw_event = to_string(event);
+    let event: Value = serde_json::from_slice(raw_event.to_bytes()).unwrap();
+    let errors = validator.validate(&event);
+
+    Array::from_vec(errors)
 }
 
 #[cfg(test)]
