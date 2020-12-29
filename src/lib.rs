@@ -4,7 +4,7 @@ use jsonschema::JSONSchema;
 use serde_json::Value;
 
 use std::ffi::{CStr, CString};
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_uint};
 
 /*
  * Our wrapper struct for schema and schema value,
@@ -36,14 +36,12 @@ impl Validator {
         self.schema.is_valid(event)
     }
 
-    fn validate(&self, event: &Value) -> Vec<*const c_char> {
-        let mut errors: Vec<*const c_char> = vec![];
+    fn validate(&self, event: &Value) -> Vec<String> {
+        let mut errors: Vec<String> = vec![];
 
         if let Err(validation_errors) = self.schema.validate(event) {
             for error in validation_errors {
-                if let Ok(c_string) = CString::new(error.to_string()) {
-                    errors.push(c_string.into_raw());
-                }
+                errors.push(error.to_string());
             }
         }
 
@@ -66,30 +64,31 @@ impl Drop for Validator {
 
 #[repr(C)]
 pub struct Array {
-    len: libc::size_t,
-    data: *const libc::c_void,
+    data: *mut *mut c_char,
+    len: c_uint,
+    cap: c_uint,
 }
 
 impl Array {
-    fn from_vec<T>(mut vec: Vec<T>) -> Array {
-        vec.shrink_to_fit();
+    fn from_vec(mut from: Vec<String>) -> Self {
+        let mut converted: Vec<*mut c_char> = from
+            .into_iter()
+            .map(|s| CString::new(s).unwrap().into_raw())
+            .collect();
 
-        let array = Array {
-            data: vec.as_ptr() as *const libc::c_void,
-            len: vec.len() as libc::size_t
+        converted.shrink_to_fit();
+
+        let len = converted.len();
+        let cap = converted.capacity();
+        let result = Array {
+            data: converted.as_mut_ptr(),
+            len: len as c_uint,
+            cap: cap as c_uint,
         };
 
-        std::mem::forget(vec);
+        std::mem::forget(converted);
 
-        array
-    }
-}
-
-impl Drop for Array {
-    fn drop(&mut self) {
-        unsafe {
-            Box::from_raw(self.data as *const _ as *mut Vec<*const c_char>);
-        }
+        result
     }
 }
 
@@ -144,18 +143,24 @@ pub extern "C" fn validator_validate(ptr: *const Validator, event: *const c_char
     let event: Value = serde_json::from_slice(raw_event.to_bytes()).unwrap();
     let errors = validator.validate(&event);
     let result = Array::from_vec(errors);
+    let boxed = Box::new(result);
 
-    Box::into_raw(Box::new(result))
+    Box::into_raw(boxed)
 }
 
 #[no_mangle]
-pub extern "C" fn array_free(array: *mut Array) {
-    if array.is_null() {
+pub extern "C" fn array_free(ptr: *mut Array) {
+    if ptr.is_null() {
         return;
     }
 
     unsafe {
-        Box::from_raw(array);
+        let array = Box::from_raw(ptr);
+        let data = Vec::from_raw_parts(array.data, array.len as usize, array.cap as usize);
+
+        for string in data {
+            let _ = CString::from_raw(string);
+        }
     }
 }
 

@@ -78,8 +78,9 @@ module RustyJSONSchema
       # nodoc
       class NodesArray < FFI::ManagedStruct
 
-        layout :len,  :size_t, # dynamic array layout
-               :data, :pointer #
+        layout :data, :pointer,
+               :len,  :uint,
+               :cap,  :uint
 
         def to_a
           self[:data].get_array_of_string(0, self[:len]).compact
@@ -93,7 +94,7 @@ module RustyJSONSchema
 
       attach_function :new, :validator_new, [:string], Validator
       attach_function :free, :validator_free, [Validator], :void
-      attach_function :free_array, :array_free, [NodesArray.by_ref], :void
+      attach_function :free_array, :array_free, [NodesArray], :void
       attach_function :is_valid, :validator_is_valid, [Validator, :string], :bool
       attach_function :validate, :validator_validate, [Validator, :string], NodesArray.by_ref
 
