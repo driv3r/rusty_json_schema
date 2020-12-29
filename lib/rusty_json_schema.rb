@@ -58,7 +58,7 @@ module RustyJSONSchema
       ffi_lib File.expand_path("ext/#{lib_name}.#{::FFI::Platform::LIBSUFFIX}", __dir__)
 
       # nodoc
-      class NodesArray < FFI::Struct
+      class NodesArray < FFI::ManagedStruct
 
         layout :len,  :size_t, # dynamic array layout
                :data, :pointer #
@@ -67,12 +67,17 @@ module RustyJSONSchema
           self[:data].get_array_of_string(0, self[:len]).compact
         end
 
+        def self.release(ptr)
+          Binding.free_array(ptr)
+        end
+
       end
 
       attach_function :new, :validator_new, [:string], Validator
       attach_function :free, :validator_free, [Validator], :void
+      attach_function :free_array, :array_free, [NodesArray.by_ref], :void
       attach_function :is_valid, :validator_is_valid, [Validator, :string], :bool
-      attach_function :validate, :validator_validate, [Validator, :string], NodesArray.by_value
+      attach_function :validate, :validator_validate, [Validator, :string], NodesArray.by_ref
 
     end
 

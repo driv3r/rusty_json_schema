@@ -6,8 +6,6 @@ use serde_json::Value;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
-use libc::size_t;
-
 /*
  * Our wrapper struct for schema and schema value,
  * we need to hold onto value in order to not have
@@ -87,6 +85,14 @@ impl Array {
     }
 }
 
+impl Drop for Array {
+    fn drop(&mut self) {
+        unsafe {
+            Box::from_raw(self.data as *const _ as *mut Vec<*const c_char>);
+        }
+    }
+}
+
 fn to_string(ptr: *const c_char) -> &'static CStr {
     unsafe {
         assert!(!ptr.is_null());
@@ -128,7 +134,7 @@ pub extern "C" fn validator_is_valid(ptr: *const Validator, event: *const c_char
 }
 
 #[no_mangle]
-pub extern "C" fn validator_validate(ptr: *const Validator, event: *const c_char) -> Array {
+pub extern "C" fn validator_validate(ptr: *const Validator, event: *const c_char) -> *mut Array {
     let validator = unsafe {
         assert!(!ptr.is_null());
         &*ptr
@@ -137,8 +143,20 @@ pub extern "C" fn validator_validate(ptr: *const Validator, event: *const c_char
     let raw_event = to_string(event);
     let event: Value = serde_json::from_slice(raw_event.to_bytes()).unwrap();
     let errors = validator.validate(&event);
+    let result = Array::from_vec(errors);
 
-    Array::from_vec(errors)
+    Box::into_raw(Box::new(result))
+}
+
+#[no_mangle]
+pub extern "C" fn array_free(array: *mut Array) {
+    if array.is_null() {
+        return;
+    }
+
+    unsafe {
+        Box::from_raw(array);
+    }
 }
 
 #[cfg(test)]
@@ -146,7 +164,6 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
     use std::ffi::CString;
-    use std::{thread, time};
 
     /*
      * Simple sanity check if everything works together
