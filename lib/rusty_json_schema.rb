@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "ffi"
+require "json"
 
 require_relative "rusty_json_schema/version"
 
@@ -14,8 +15,25 @@ require_relative "rusty_json_schema/version"
 #
 module RustyJSONSchema
 
-  def self.build(schema)
-    RustyJSONSchema::Validator::Binding.new(schema)
+  class << self
+
+    attr_writer :processor
+
+    def processor
+      @processor ||= JSON
+    end
+
+    def dump(data)
+      case data
+      when String then data
+      else processor.dump(data)
+      end
+    end
+
+    def build(schema)
+      RustyJSONSchema::Validator::Binding.new(dump(schema))
+    end
+
   end
 
   class Error < StandardError; end
@@ -36,11 +54,11 @@ module RustyJSONSchema
     # Simple validation without actual error messages
     #
     def valid?(event)
-      Binding.is_valid(self, event)
+      Binding.is_valid(self, RustyJSONSchema.dump(event))
     end
 
     def validate(event)
-      Binding.validate(self, event)
+      Binding.validate(self, RustyJSONSchema.dump(event)).to_a
     end
 
     # FFI container for our library.

@@ -29,4 +29,5 @@ Gem::Specification.new do |spec|
 
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "ffi", "~> 1.14"
+  spec.add_dependency "json", ">= 1.0"
 end
