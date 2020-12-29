@@ -70,7 +70,7 @@ pub struct Array {
 }
 
 impl Array {
-    fn from_vec(mut from: Vec<String>) -> Self {
+    fn from_vec(from: Vec<String>) -> Self {
         let mut converted: Vec<*mut c_char> = from
             .into_iter()
             .map(|s| CString::new(s).unwrap().into_raw())
