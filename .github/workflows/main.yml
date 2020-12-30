@@ -28,18 +28,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Rust
+        id: toolchain
         uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
             override: true
             target: ${{ matrix.target }}
+
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            $CARGO_HOME/bin/
+            $CARGO_HOME/registry/index/
+            $CARGO_HOME/registry/cache/
+            $CARGO_HOME/git/db/
             target
-          key: ${{ runner.os }}-cargo-v1-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ steps.toolchain.outputs.rustc_hash}}-${{ hashFiles('**/Cargo.lock') }}
 
       # Target older versions of OSX (as old as we reasonably can) to ensure we
       # can run across a wide variety of systems.
@@ -48,15 +52,18 @@ jobs:
         run: |
           echo MACOSX_DEPLOYMENT_TARGET=10.7 >> $GITHUB_ENV
 
-      - name: Test
-        run: |
-          cargo check --all --all-targets --frozen
-          cargo build
-          cargo test
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
 
-      - name: Compile
-        run: |
-          cargo build --release --target ${{ matrix.target }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target ${{ matrix.target }}
 
       - uses: actions/upload-artifact@v2
         if: ${{ matrix.os != 'windows-latest' }}
