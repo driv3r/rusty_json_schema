@@ -34,6 +34,7 @@ jobs:
             toolchain: stable
             override: true
             target: ${{ matrix.target }}
+            components: rustfmt, clippy
 
       - uses: actions/cache@v2
         if: matrix.os != 'macos-latest'
