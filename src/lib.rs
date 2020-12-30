@@ -110,6 +110,7 @@ pub extern "C" fn validator_new(c_schema: *const c_char) -> *mut Validator {
 }
 
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn validator_free(ptr: *mut Validator) {
     if ptr.is_null() {
         return;
@@ -121,6 +122,7 @@ pub extern "C" fn validator_free(ptr: *mut Validator) {
 }
 
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn validator_is_valid(ptr: *const Validator, event: *const c_char) -> bool {
     let validator = unsafe {
         assert!(!ptr.is_null());
@@ -134,6 +136,7 @@ pub extern "C" fn validator_is_valid(ptr: *const Validator, event: *const c_char
 }
 
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn validator_validate(ptr: *const Validator, event: *const c_char) -> *mut Array {
     let validator = unsafe {
         assert!(!ptr.is_null());
@@ -150,6 +153,7 @@ pub extern "C" fn validator_validate(ptr: *const Validator, event: *const c_char
 }
 
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn array_free(ptr: *mut Array) {
     if ptr.is_null() {
         return;
