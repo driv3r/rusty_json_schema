@@ -96,7 +96,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-ruby-2.5.0
+        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-${{ hashFiles('../.tool-versions') }}
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
@@ -113,6 +113,7 @@ jobs:
 
     - name: Prep gems
       run: |
+        sudo apt install liburcu-dev
         gem install bundler -v 2.2.3
         bundle install --path vendor/bundle
 
