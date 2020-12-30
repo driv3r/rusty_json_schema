@@ -24,7 +24,8 @@ impl Validator {
      */
     fn new(schema: Value) -> Validator {
         let boxed_schema: &'static Value = Box::leak(Box::new(schema));
-        let boxed_compile: &'static JSONSchema<'static> = Box::leak(Box::new(JSONSchema::compile(boxed_schema).unwrap()));
+        let boxed_compile: &'static JSONSchema<'static> =
+            Box::leak(Box::new(JSONSchema::compile(boxed_schema).unwrap()));
 
         Validator {
             schema: boxed_compile,
@@ -101,7 +102,7 @@ fn to_string(ptr: *const c_char) -> &'static CStr {
 
 #[no_mangle]
 pub extern "C" fn validator_new(c_schema: *const c_char) -> *mut Validator {
-    let raw_schema  = to_string(c_schema);
+    let raw_schema = to_string(c_schema);
     let schema = serde_json::from_slice(raw_schema.to_bytes()).unwrap();
     let validator = Validator::new(schema);
 
