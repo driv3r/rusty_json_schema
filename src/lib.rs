@@ -180,19 +180,91 @@ mod tests {
      */
     #[test]
     fn test_valid_event() {
-        let schema = CString::new("{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":[{\"type\":\"number\",\"exclusiveMaximum\":10}]}").unwrap();
-        let valid_event = CString::new("[9]").unwrap();
-        let invalid_event = CString::new("[22]").unwrap();
+        let validator = validator_new(helper_c_schema().as_ptr());
 
-        let c_schema_ptr: *const c_char = schema.as_ptr();
-        let c_valid_event_ptr: *const c_char = valid_event.as_ptr();
-        let c_invalid_event_ptr: *const c_char = invalid_event.as_ptr();
+        assert!(
+            validator_is_valid(
+                validator,
+                helper_c_valid().as_ptr()
+            )
+        );
 
-        let validator = validator_new(c_schema_ptr);
-
-        assert!(validator_is_valid(validator, c_valid_event_ptr));
-        assert!(!validator_is_valid(validator, c_invalid_event_ptr));
+        assert!(
+            !validator_is_valid(
+                validator,
+                helper_c_invalid().as_ptr()
+            )
+        );
 
         validator_free(validator);
+    }
+
+    #[test]
+    fn test_validate_event_when_valid() {
+        let validator = validator_new(helper_c_schema().as_ptr());
+        let raw_result = validator_validate(validator, helper_c_valid().as_ptr());
+        let result = unsafe { helper_validate_result_as_vec(raw_result) };
+
+        let expectation: Vec<String> = vec![];
+
+        assert_eq!(result, expectation);
+
+        validator_free(validator);
+    }
+
+    #[test]
+    fn test_validate_event_when_invalid() {
+        let validator = validator_new(helper_c_schema().as_ptr());
+        let raw_result = validator_validate(validator, helper_c_invalid().as_ptr());
+        let result = unsafe { helper_validate_result_as_vec(raw_result) };
+
+        let expectation: Vec<String> = vec![
+            String::from("\'\"rusty\"\' is not of type \'number\'"),
+            String::from("\'1\' is not of type \'string\'"),
+            String::from("\'baz\' is a required property")
+        ];
+
+        assert_eq!(result, expectation);
+
+        validator_free(validator);
+    }
+
+
+    /*
+     * Test helpers
+     */
+    fn helper_c_schema() -> CString {
+        CString::new(r#"{
+            "properties":{
+                "foo": {"type": "string"},
+                "bar": {"type": "number"},
+                "baz": {}
+            },
+            "required": ["baz"]
+        }"#).unwrap()
+    }
+
+    fn helper_c_valid() -> CString {
+        CString::new(r#"{
+            "foo": "rusty",
+            "bar": 1,
+            "baz": "rusty"
+        }"#).unwrap()
+    }
+
+    fn helper_c_invalid() -> CString {
+        CString::new(r#"{
+            "foo": 1,
+            "bar": "rusty"
+        }"#).unwrap()
+    }
+
+    unsafe fn helper_validate_result_as_vec(result: *mut Array) -> Vec<String> {
+        let raw = Box::from_raw(result);
+
+        Vec::from_raw_parts(raw.data, raw.len as usize, raw.cap as usize)
+            .into_iter()
+            .map(|x| CString::from_raw(x).into_string().unwrap() )
+            .collect()
     }
 }
