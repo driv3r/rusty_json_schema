@@ -6,6 +6,12 @@ AllCops:
   TargetRubyVersion: 2.5
   NewCops: enable
   SuggestExtensions: false
+  Exclude:
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+    - '.git/**/*'
+    - 'spec/benchmark.rb'
 
 Style/StringLiterals:
   Enabled: true

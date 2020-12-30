@@ -1,46 +1,216 @@
 # frozen_string_literal: true
-
+# rubocop:disable
 require "benchmark/ips"
-require "json_schemer"
-require "rusty_json_schema"
 require "json"
 
-big_schema = File.read("spec/fixtures/canada_schema.json")
-big_schema_hash = JSON.parse(big_schema)
-big_event = File.read("spec/fixtures/canada.json")
-big_event_hash = JSON.parse(big_event)
+require "json_schemer"
 
-small_schema = File.read("spec/fixtures/small_schema.json")
-small_schema_hash = JSON.parse(small_schema)
-small_event = File.read("spec/fixtures/small_valid.json")
-small_event_hash = JSON.parse(small_event)
-small_invalid_event = File.read("spec/fixtures/small_invalid.json")
-small_invalid_event_hash = JSON.parse(small_invalid_event)
+require_relative "../lib/rusty_json_schema"
+require_relative "support/test_schemas"
 
-big_validator = RustyJSONSchema.build(big_schema)
-big_schemer = JSONSchemer.schema(big_schema_hash)
-small_validator = RustyJSONSchema.build(small_schema)
-small_schemer = JSONSchemer.schema(small_schema_hash)
+tests = {
+  tiny: {
+    schema: TestSchemas.regular_schema,
+    events: [
+      {
+        valid: true,
+        event: TestSchemas.regular_event_valid,
+        results: {}
+      },
+      {
+        valid: false,
+        event: TestSchemas.regular_event_invalid,
+        results: {}
+      }
+    ]
+  },
+  small: {
+    schema: TestSchemas.small_schema,
+    events: [
+      {
+        valid: true,
+        event: TestSchemas.small_event_valid,
+        results: {}
+      },
+      {
+        valid: false,
+        event: TestSchemas.small_event_invalid,
+        results: {}
+      }
+    ]
+  },
+  big: {
+    config: {
+      time: 30,
+      warmup: 6
+    },
+    schema: TestSchemas.big_schema,
+    events: [
+      {
+        valid: true,
+        event: TestSchemas.big_event,
+        results: {}
+      }
+    ]
+  }
+}
 
-Benchmark.ips do |x|
-  x.config(time: 30, warmup: 6)
+tests.each do |schema, specs|
+  validators = {
+    RustyJSONSchema: RustyJSONSchema.build(specs[:schema]),
+    JSONSchemer: JSONSchemer.schema(specs[:schema])
+  }
 
-  x.report("big validator") { raise "foo" unless big_validator.valid?(big_event) }
-  x.report("big schemer") { raise "foo" unless big_schemer.valid?(big_event_hash) }
+  specs[:events].each do |event|
+    puts "\n=========================================\n#{schema} schema: #{event[:valid] ? "" : "in"}valid event => #valid?"
+    event[:results][:valid?] = Benchmark.ips do |x|
+      x.config(specs[:config]) if specs.key?(:config)
 
-  x.compare!
+      validators.each do |name, validator|
+        x.report(name) do
+          validator.valid?(event[:event])
+        end
+      end
+
+      x.compare!
+    end
+
+    puts "\n#{schema} schema: #{event[:valid] ? "" : "in"}valid event => #validate"
+    event[:results][:validate] = Benchmark.ips do |x|
+      x.config(specs[:config]) if specs.key?(:config)
+
+      validators.each do |name, validator|
+        x.report(name) do
+          validator.validate(event[:event]).to_a
+        end
+      end
+
+      x.compare!
+    end
+  end
 end
 
-Benchmark.ips do |x|
-  x.report("small validator: valid") { raise "foo" unless small_validator.valid?(small_event) }
-  x.report("small schemer:   valid") { raise "foo" unless small_schemer.valid?(small_event_hash) }
+HEADER = <<STR
+# Benchmarks
 
-  x.compare!
+Compare various gems doing json schema validation.
+
+At the moment we are only looking at gems implementing Draft 7 of json schema.
+
+Update by running:
+
+```bash
+bundle exec ruby spec/benchmark.rb
+```
+
+> Run against:
+>
+> - #{`uname -v -r`.split(" ").take(2).reverse.join(" @ kernel: ")}
+> - AMD Ryzen 9 3900X 12-Core
+> - 32GB RAM
+
+STR
+
+TABLE_HEADER = <<STR
+  <thead>
+    <tr>
+      <th rowspan=2 >Gem</th>
+      <th colspan=2 >Tiny Schema</th>
+      <th colspan=2 >Schema</th>
+      <th >Big Schema</th>
+    </tr>
+    <tr>
+      <th>Valid</th>
+      <th>Invalid</th>
+      <th>Valid</th>
+      <th>Invalid</th>
+      <th>Valid</th>
+    </tr>
+  </thead>
+STR
+
+DESC = {
+  valid?: "Simple boolean result.",
+  validate: "Returns a list of validation errors if any"
+}.freeze
+
+GEMS_ORDER = %i[RustyJSONSchema JSONSchemer].freeze
+TESTS_ORDER = %i[tiny_valid tiny_invalid small_valid small_invalid big_valid].freeze
+
+def update_results(tests)
+  results = {
+    valid?: {},
+    validate: {}
+  }
+
+  tests.each do |schema, specs|
+    specs[:events].each do |event|
+      name = "#{schema}_#{event[:valid] ? "valid" : "invalid"}".to_sym
+
+      gen_results(event[:results][:valid?].entries, results[:valid?], name)
+      gen_results(event[:results][:validate].entries, results[:validate], name)
+    end
+  end
+
+  File.open("BENCHMARK.md", mode: "w") do |f|
+    f.write(HEADER)
+
+    results.each do |method, result|
+      f.write <<~STR
+        ## Gem##{method}
+
+        #{DESC[method]}
+
+        > Results in instructions/validations per second.
+
+        <table>
+        #{TABLE_HEADER}
+          <tbody>
+      STR
+
+      GEMS_ORDER.each do |gem_name|
+        to_write = ["    <tr>", "      <th>#{gem_name}</th>"]
+        TESTS_ORDER.each do |test_name|
+          to_write << "      <td>#{result[gem_name][test_name]}</td>"
+        end
+        to_write << "    </tr>\n"
+        f.write(to_write.join("\n"))
+      end
+
+      f.write("  </tbody>\n</table>\n\n")
+    end
+  end
 end
 
-Benchmark.ips do |x|
-  x.report("small validator: invalid") { raise "foo" if small_validator.valid?(small_invalid_event) }
-  x.report("small schemer:   invalid") { raise "foo" if small_schemer.valid?(small_invalid_event_hash) }
+def gen_results(entries, results, test_name)
+  sorted = entries.sort_by { |e| e.stats.central_tendency }
+                  .reverse
 
-  x.compare!
+  best = sorted.shift
+
+  results[gem_name(best)] ||= {}
+  results[gem_name(best)][test_name] = format("%10.1f", best.stats.central_tendency)
+
+  sorted.each do |report|
+    extra =
+      if report.stats.overlaps?(best.stats)
+        "same-ish"
+      else
+        slowdown, error = report.stats.slowdown(best.stats)
+
+        str = format("%.2fx ", slowdown)
+        str = format("#{str} (± %.2f)", error) if error && error > 0.01
+
+        str
+      end
+
+    results[gem_name(report)] ||= {}
+    results[gem_name(report)][test_name] = format("%10.1f - %s", report.stats.central_tendency, extra)
+  end
 end
+
+def gem_name(entry)
+  entry.label.to_s.to_sym
+end
+
+update_results(tests)

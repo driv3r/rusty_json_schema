@@ -52,29 +52,9 @@ module MemoryUsageSupport
 
   class Server
 
-    SCHEMA = JSON.dump(
-      "properties": {
-        "foo": {
-          type: "string"
-        },
-        "bar": {
-          type: "number"
-        },
-        "baz": {}
-      },
-      "required": ["baz"]
-    ).freeze
-
-    VALID = JSON.dump(
-      "foo" => "rusty",
-      "bar" => 1,
-      "baz" => "rusty"
-    ).freeze
-
-    INVALID = JSON.dump(
-      "foo" => 1,
-      "bar" => "rusty"
-    ).freeze
+    SCHEMA = TestSchemas.regular_schema
+    VALID = TestSchemas.regular_event_valid
+    INVALID = TestSchemas.regular_event_invalid
 
     def initialize(report_file:, sample: 1000)
       @stop = false
