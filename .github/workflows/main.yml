@@ -36,6 +36,7 @@ jobs:
             target: ${{ matrix.target }}
 
       - uses: actions/cache@v2
+        if: matrix.os != 'macos-latest'
         with:
           path: |
             $CARGO_HOME/bin/
