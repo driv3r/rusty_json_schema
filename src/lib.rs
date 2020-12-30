@@ -182,19 +182,9 @@ mod tests {
     fn test_valid_event() {
         let validator = validator_new(helper_c_schema().as_ptr());
 
-        assert!(
-            validator_is_valid(
-                validator,
-                helper_c_valid().as_ptr()
-            )
-        );
+        assert!(validator_is_valid(validator, helper_c_valid().as_ptr()));
 
-        assert!(
-            !validator_is_valid(
-                validator,
-                helper_c_invalid().as_ptr()
-            )
-        );
+        assert!(!validator_is_valid(validator, helper_c_invalid().as_ptr()));
 
         validator_free(validator);
     }
@@ -221,7 +211,7 @@ mod tests {
         let expectation: Vec<String> = vec![
             String::from("\'\"rusty\"\' is not of type \'number\'"),
             String::from("\'1\' is not of type \'string\'"),
-            String::from("\'baz\' is a required property")
+            String::from("\'baz\' is a required property"),
         ];
 
         assert_eq!(result, expectation);
@@ -229,34 +219,42 @@ mod tests {
         validator_free(validator);
     }
 
-
     /*
      * Test helpers
      */
     fn helper_c_schema() -> CString {
-        CString::new(r#"{
-            "properties":{
-                "foo": {"type": "string"},
-                "bar": {"type": "number"},
-                "baz": {}
-            },
-            "required": ["baz"]
-        }"#).unwrap()
+        CString::new(
+            r#"{
+                "properties":{
+                    "foo": {"type": "string"},
+                    "bar": {"type": "number"},
+                    "baz": {}
+                },
+                "required": ["baz"]
+            }"#,
+        )
+        .unwrap()
     }
 
     fn helper_c_valid() -> CString {
-        CString::new(r#"{
-            "foo": "rusty",
-            "bar": 1,
-            "baz": "rusty"
-        }"#).unwrap()
+        CString::new(
+            r#"{
+                "foo": "rusty",
+                "bar": 1,
+                "baz": "rusty"
+            }"#,
+        )
+        .unwrap()
     }
 
     fn helper_c_invalid() -> CString {
-        CString::new(r#"{
-            "foo": 1,
-            "bar": "rusty"
-        }"#).unwrap()
+        CString::new(
+            r#"{
+                "foo": 1,
+                "bar": "rusty"
+            }"#,
+        )
+        .unwrap()
     }
 
     unsafe fn helper_validate_result_as_vec(result: *mut Array) -> Vec<String> {
@@ -264,7 +262,7 @@ mod tests {
 
         Vec::from_raw_parts(raw.data, raw.len as usize, raw.cap as usize)
             .into_iter()
-            .map(|x| CString::from_raw(x).into_string().unwrap() )
+            .map(|x| CString::from_raw(x).into_string().unwrap())
             .collect()
     }
 }
