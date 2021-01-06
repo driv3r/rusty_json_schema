@@ -2,16 +2,13 @@
 
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
+require "rubocop/rake_task"
+require "thermite/tasks"
+
+require_relative "lib/tasks/thermite_dir_patch"
 
 RSpec::Core::RakeTask.new(:spec)
-
-require "rubocop/rake_task"
-
 RuboCop::RakeTask.new
+Thermite::Tasks.new
 
-task :rust_build do
-  `cargo rustc --release`
-  `mv -f ./target/release/libjson_schema.so ./lib/ext/`
-end
-
-task default: %i[rust_build spec rubocop]
+task default: %i[thermite:build thermite:test spec rubocop]
