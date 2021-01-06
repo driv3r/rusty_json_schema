@@ -24,6 +24,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
       - name: Set up Rust
         id: toolchain
         uses: actions-rs/toolchain@v1
@@ -43,6 +45,11 @@ jobs:
             $CARGO_HOME/git/db/
             target
           key: ${{ runner.os }}-cargo-${{ steps.toolchain.outputs.rustc_hash}}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-${{ hashFiles('../.tool-versions') }}
 
       # Target older versions of OSX (as old as we reasonably can) to ensure we
       # can run across a wide variety of systems.
@@ -70,7 +77,9 @@ jobs:
 
       - name: Build shared extension
         run: |
-          rake thermite:tarball
+          gem install bundler -v 2.2.3
+          bundle install --path vendor/bundle
+          bundle exec rake thermite:tarball
 
       - uses: actions/upload-artifact@v2
         with:
@@ -102,7 +111,6 @@ jobs:
 
     - name: Prep gems
       run: |
-        sudo apt install liburcu-dev
         gem install bundler -v 2.2.3
         bundle install --path vendor/bundle
 

@@ -4,8 +4,14 @@ require "thermite/tasks"
 require_relative "../lib/tasks/thermite_dir_patch"
 
 project_dir = File.dirname(File.dirname(__FILE__))
+thermite    = Thermite::Tasks.new(cargo_project_path: project_dir,
+                                  ruby_project_path: project_dir)
 
-Thermite::Tasks.new(cargo_project_path: project_dir,
-                    ruby_project_path: project_dir)
+namespace :thermite do
+  desc "Cleanup cargo artifacts"
+  task :cargo_clean do
+    thermite.run_cargo_if_exists "clean", *thermite.cargo_manifest_path_args
+  end
+end
 
-task default: %w[thermite:build]
+task default: %w[thermite:build thermite:cargo_clean]
