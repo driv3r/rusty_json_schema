@@ -23,7 +23,15 @@ Gem::Specification.new do |spec|
   spec.metadata["source_code_uri"]   = spec.homepage
   spec.metadata["changelog_uri"]     = "https://github.com/driv3r/rusty_json_schema/blob/main/CHANGELOG.md"
 
-  spec.files = Dir["lib/**/*", "src/**/*.rs", "rusty_json_schema.gemspec", "Cargo.toml", "LICENSE", "README.md"]
+  spec.files = Dir[
+    "lib/**/*",
+    "src/**/*.rs",
+    "rusty_json_schema.gemspec",
+    "Cargo.toml",
+    "LICENSE",
+    "README.md",
+    "ext/Rakefile"
+  ]
 
   spec.require_paths = ["lib"]
 

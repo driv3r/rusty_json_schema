@@ -15,13 +15,10 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            ext: so
           - target: x86_64-apple-darwin
             os: macos-latest
-            ext: dylib
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            ext: dll
 
     runs-on: ${{ matrix.os }}
 
@@ -71,22 +68,14 @@ jobs:
           command: fmt
           args: --all -- --check
 
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --target ${{ matrix.target }}
+      - name: Build shared extension
+        run: |
+          rake thermite:tarball
 
       - uses: actions/upload-artifact@v2
-        if: ${{ matrix.os != 'windows-latest' }}
         with:
           name: rusty_json_schema-${{ matrix.os }}
-          path: target/${{ matrix.target }}/release/libjson_schema.*
-
-      - uses: actions/upload-artifact@v2
-        if: ${{ matrix.os == 'windows-latest' }}
-        with:
-          name: rusty_json_schema-${{ matrix.os }}
-          path: target\${{ matrix.target }}\release\json_schema.*
+          path: json_schema-*.tar.gz
 
   build:
     runs-on: ubuntu-latest
@@ -105,13 +94,11 @@ jobs:
 
     - uses: actions/download-artifact@v2
       with:
-        path: dist/
+        path: ./
 
-    - name: Move libs to gem
+    - name: Prep shared extension
       run: |
-        mv dist/rusty_json_schema-macos-latest/* lib/ext/
-        mv dist/rusty_json_schema-ubuntu-latest/* lib/ext/
-        mv dist/rusty_json_schema-windows-latest/* lib/ext/
+        rake thermite:unpack
 
     - name: Prep gems
       run: |
@@ -152,9 +139,19 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: rusty_json_schema.gem
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: rusty_json_schema-${{ matrix.os }}
+
+    - name: Prep shared extension
+      run: |
+        rake thermite:unpack
+
     - name: Install gem
       run: |
         gem install *.gem
+
     - name: Test gem against platform
       run: |
         bin/integration

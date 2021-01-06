@@ -9,13 +9,7 @@ module RustyJSONSchema
 
     extend FFI::Library
 
-    lib_name =
-      case ::FFI::Platform::LIBSUFFIX
-      when "so", "dylib" then "libjson_schema"
-      when "dll" then "json_schema"
-      end
-
-    ffi_lib File.expand_path("../ext/#{lib_name}.#{::FFI::Platform::LIBSUFFIX}", __dir__)
+    ffi_lib File.expand_path("../../ext/json_schema.so", __dir__)
 
     attach_function :new, :validator_new, [:string], Validator
     attach_function :free, :validator_free, [Validator], :void

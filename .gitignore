@@ -15,4 +15,8 @@
 
 # Added by cargo
 
+json_schema-*.tar.gz
+
 /target
+/ext
+!/ext/Rakefile
