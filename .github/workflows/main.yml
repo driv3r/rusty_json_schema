@@ -121,8 +121,12 @@ jobs:
 
       - name: Unpack prebuild libraries
         run: |
-          ls -l
+          mv rusty_json_schema-macos-latest/*.tar.gz ./
+          mv rusty_json_schema-ubuntu-latest/*.tar.gz ./
+          mv rusty_json_schema-windows-latest/*.tar.gz ./
+
           tar -zxf *.tar.gz
+
           ls -l ext/
 
       - name: Build gem
