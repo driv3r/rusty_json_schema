@@ -120,11 +120,9 @@ jobs:
 
       - name: Unpack prebuild libraries
         run: |
-          ls -l rusty_json_schema-*
-
-          for f in rusty_json_schema-*-latest/*.default; do mv f ext/; done
-
-          ls -l ext/
+          mv rusty_json_schema-macos-latest/*.default ext/
+          mv rusty_json_schema-ubuntu-latest/*.default ext/
+          mv rusty_json_schema-windows-latest/*.default ext/
 
       - name: Build gem
         run: gem build *.gemspec
