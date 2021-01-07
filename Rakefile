@@ -13,14 +13,15 @@ thermite = Thermite::Tasks.new
 
 namespace :thermite do
   desc "Make existing extension default one"
-  task :default do
+  task :create_default do
     next unless File.exist?(thermite.config.ruby_extension_path)
 
-    FileUtils.mv(thermite.config.ruby_extension_path,
-                 "#{thermite.config.ruby_extension_path}.#{Gem::Platform::CURRENT}.default")
+    puts "Make #{thermite.config.ruby_extension_path} a #{Gem::Platform.local} default implementation"
+    FileUtils.cp(thermite.config.ruby_extension_path,
+                 "#{thermite.config.ruby_extension_path}.#{Gem::Platform.local}.default")
   end
 end
 
-Rake::Task["thermite:build"].enhance(["thermite:default"])
+Rake::Task["thermite:build"].enhance(["thermite:create_default"])
 
 task default: %i[thermite:build thermite:test spec rubocop]

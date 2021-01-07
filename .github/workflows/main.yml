@@ -75,7 +75,9 @@ jobs:
           bundle install
 
       - name: Build shared library
-        run: bundle exec rake thermite:build
+        run: |
+          bundle exec rake thermite:build
+          ls -l ext/
 
       - name: Rust test
         uses: actions-rs/cargo@v1
@@ -99,13 +101,10 @@ jobs:
       - name: Tests
         run: bundle exec rspec
 
-      - name: Package binary extension
-        run: bundle exec rake thermite:tarball
-
       - uses: actions/upload-artifact@v2
         with:
           name: rusty_json_schema-${{ matrix.os }}
-          path: '*.tar.gz'
+          path: ext/*.default
 
   build:
     needs: [cross_compile]
@@ -121,11 +120,9 @@ jobs:
 
       - name: Unpack prebuild libraries
         run: |
-          mv rusty_json_schema-macos-latest/*.tar.gz ./
-          mv rusty_json_schema-ubuntu-latest/*.tar.gz ./
-          mv rusty_json_schema-windows-latest/*.tar.gz ./
+          ls -l rusty_json_schema-*
 
-          tar -zxf *.tar.gz
+          for f in rusty_json_schema-*-latest/*.default; do mv f ext/; done
 
           ls -l ext/
 
