@@ -102,18 +102,39 @@ jobs:
       - name: Package binary extension
         run: bundle exec rake thermite:tarball
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: rusty_json_schema-${{ matrix.os }}
+          path: '*.tar.gz'
+
+  build:
+    needs: [cross_compile]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+
+      - uses: actions/download-artifact@v2
+
+      - name: Unpack prebuild libraries
+        run: |
+          ls -l
+          tar -zxf *.tar.gz
+          ls -l ext/
+
       - name: Build gem
-        env:
-          PER_PLATFORM_BUILD: true
         run: gem build *.gemspec
 
       - uses: actions/upload-artifact@v2
         with:
-          name: rusty_json_schema-${{ matrix.os }}
+          name: rusty_json_schema.gem
           path: '*.gem'
 
   integration_test:
-    needs: [cross_compile]
+    needs: [build]
 
     strategy:
       matrix:
@@ -139,7 +160,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: rusty_json_schema-${{ (startsWith(matrix.os, 'ubuntu') && 'ubuntu-latest') || matrix.os }}
+          name: rusty_json_schema.gem
 
       - name: Install gem
         run: gem install *.gem

@@ -17,7 +17,7 @@ namespace :thermite do
     next unless File.exist?(thermite.config.ruby_extension_path)
 
     FileUtils.mv(thermite.config.ruby_extension_path,
-                 "#{thermite.config.ruby_extension_path}.default")
+                 "#{thermite.config.ruby_extension_path}.#{Gem::Platform::CURRENT}.default")
   end
 end
 

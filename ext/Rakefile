@@ -11,19 +11,25 @@ thermite    = Thermite::Tasks.new(cargo_project_path: project_dir,
 namespace :thermite do
   desc "Try to build extension if cargo is available or setup default lib"
   task :build_or_default do
+    default_ext_path = "#{thermite.config.ruby_extension_path}.#{Gem::Platform::CURRENT}.default"
+
     if thermite.cargo
       profile = ENV.fetch("CARGO_PROFILE", "release")
       thermite.run_cargo_rustc(profile)
 
       FileUtils.cp(thermite.config.cargo_target_path(profile, thermite.config.cargo_shared_library),
                    thermite.config.ruby_extension_path)
-    else
-      puts "NOTE: Defaults to pre-build binary => your mileage may vary."
+    elsif File.exist?(default_ext_path)
+      puts "NOTE: Defaults to pre-build binary #{default_ext_path.inspect} => your mileage may vary."
 
-      FileUtils.mv("#{thermite.config.ruby_extension_path}.default",
+      FileUtils.mv(default_ext_path,
                    thermite.config.ruby_extension_path)
 
       thermite.inform_user_about_cargo
+    else
+      # Prebuild binary is not available for a given platform, install cargo to
+      # compile the gem
+      raise thermite.cargo_required_msg
     end
   end
 
