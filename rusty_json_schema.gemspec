@@ -16,7 +16,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     Currently during heavy development.
   STR
 
-  spec.platform              = Gem::Platform::CURRENT
+  spec.platform              = Gem::Platform::CURRENT if ENV.key?("PER_PLATFORM_BUILD")
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"

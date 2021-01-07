@@ -35,8 +35,22 @@ jobs:
             target: ${{ matrix.target }}
             components: rustfmt, clippy
 
+      # Target older versions of OSX (as old as we reasonably can) to ensure we
+      # can run across a wide variety of systems.
+      - name: Configure OSX deployment target
+        if: matrix.os == 'macos-latest'
+        run: |
+          echo MACOSX_DEPLOYMENT_TARGET=10.7 >> $GITHUB_ENV
+
+      # Fixing caching on Mac, we install gnu-tar because BSD tar is buggy on Github's macos machines
+      # REF: https://github.com/actions/cache/issues/403
+      - name: MacOS caching fix
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install gnu-tar
+          echo "::add-path::/usr/local/opt/gnu-tar/libexec/gnubin"
+
       - uses: actions/cache@v2
-        if: matrix.os != 'macos-latest'
         with:
           path: |
             $CARGO_HOME/bin/
@@ -51,17 +65,14 @@ jobs:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-${{ hashFiles('../.tool-versions') }}
 
-      # Target older versions of OSX (as old as we reasonably can) to ensure we
-      # can run across a wide variety of systems.
-      - name: Configure OSX deployment target
-        if: matrix.os == 'macos-latest'
-        run: |
-          echo MACOSX_DEPLOYMENT_TARGET=10.7 >> $GITHUB_ENV
-
       - name: Prepare ruby gems
         run: |
           gem install bundler -v 2.2.3
-          bundle install --path vendor/bundle
+
+          bundle config path vendor/bundle
+          bundle config jobs 4
+
+          bundle install
 
       - name: Build shared library
         run: bundle exec rake thermite:build
@@ -92,6 +103,8 @@ jobs:
         run: bundle exec rake thermite:tarball
 
       - name: Build gem
+        env:
+          PER_PLATFORM_BUILD: true
         run: gem build *.gemspec
 
       - uses: actions/upload-artifact@v2
