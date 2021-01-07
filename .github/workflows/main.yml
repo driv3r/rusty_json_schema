@@ -105,14 +105,14 @@ jobs:
       with:
         path: ./
 
-    - name: Prep shared extension
-      run: |
-        rake thermite:unpack
-
     - name: Prep gems
       run: |
         gem install bundler -v 2.2.3
         bundle install --path vendor/bundle
+
+    - name: Prep shared extension
+      run: |
+        rake thermite:unpack
 
     - name: Styling
       run: |
