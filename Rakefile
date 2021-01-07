@@ -14,7 +14,7 @@ thermite = Thermite::Tasks.new
 namespace :thermite do
   desc "Make existing extension default one"
   task :default do
-    return unless File.exist?(thermite.config.ruby_extension_path)
+    next unless File.exist?(thermite.config.ruby_extension_path)
 
     FileUtils.mv(thermite.config.ruby_extension_path,
                  "#{thermite.config.ruby_extension_path}.default")
