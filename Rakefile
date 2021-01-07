@@ -11,16 +11,16 @@ RSpec::Core::RakeTask.new(:spec)
 RuboCop::RakeTask.new
 thermite = Thermite::Tasks.new
 
-namespace :thermite do
-  desc "Make existing extension default one"
-  task :default do
-    next unless File.exist?(thermite.config.ruby_extension_path)
-
-    FileUtils.mv(thermite.config.ruby_extension_path,
-                 "#{thermite.config.ruby_extension_path}.default")
+desc "Make existing extension default one"
+task build: ["thermite:build"] do
+  unless File.exist?(thermite.config.ruby_extension_path)
+    puts "File doesn't exist: #{thermite.config.ruby_extension_path.inspect}"
+    next
   end
+
+  puts "Make #{thermite.config.ruby_extension_path} a #{Gem::Platform.local} default implementation"
+  FileUtils.cp(thermite.config.ruby_extension_path,
+               "#{thermite.config.ruby_extension_path}.#{Gem::Platform.local}.default")
 end
 
-Rake::Task["thermite:build"].enhance(["thermite:default"])
-
-task default: %i[thermite:build thermite:test spec rubocop]
+task default: %i[build thermite:test spec rubocop]

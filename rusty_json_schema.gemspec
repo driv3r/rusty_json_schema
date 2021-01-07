@@ -16,7 +16,6 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     Currently during heavy development.
   STR
 
-  spec.platform              = Gem::Platform::CURRENT if ENV.key?("PER_PLATFORM_BUILD")
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
@@ -32,7 +31,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
     "LICENSE",
     "README.md",
     "ext/Rakefile",
-    "ext/json_schema.so.default"
+    "ext/*.default"
   ]
 
   spec.require_paths = ["lib"]
