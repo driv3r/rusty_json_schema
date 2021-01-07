@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0]
+### Added
+- Compile gem during installation when rustc is available
+
+### Changed
+- Build per platform, reducing total size of a single gem
+- Providing default binary for platform
+
 ## [0.2.0]
 ### Added
 - `validate` function returning array of error messages.

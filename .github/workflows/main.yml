@@ -15,18 +15,17 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            ext: so
           - target: x86_64-apple-darwin
             os: macos-latest
-            ext: dylib
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            ext: dll
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
       - name: Set up Rust
         id: toolchain
         uses: actions-rs/toolchain@v1
@@ -36,8 +35,22 @@ jobs:
             target: ${{ matrix.target }}
             components: rustfmt, clippy
 
+      # Target older versions of OSX (as old as we reasonably can) to ensure we
+      # can run across a wide variety of systems.
+      - name: Configure OSX deployment target
+        if: matrix.os == 'macos-latest'
+        run: |
+          echo MACOSX_DEPLOYMENT_TARGET=10.7 >> $GITHUB_ENV
+
+      # Fixing caching on Mac, we install gnu-tar because BSD tar is buggy on Github's macos machines
+      # REF: https://github.com/actions/cache/issues/403
+      - name: MacOS caching fix
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install gnu-tar
+          echo "/usr/local/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
+
       - uses: actions/cache@v2
-        if: matrix.os != 'macos-latest'
         with:
           path: |
             $CARGO_HOME/bin/
@@ -47,114 +60,89 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ steps.toolchain.outputs.rustc_hash}}-${{ hashFiles('**/Cargo.lock') }}
 
-      # Target older versions of OSX (as old as we reasonably can) to ensure we
-      # can run across a wide variety of systems.
-      - name: Configure OSX deployment target
-        if: matrix.os == 'macos-latest'
-        run: |
-          echo MACOSX_DEPLOYMENT_TARGET=10.7 >> $GITHUB_ENV
-
-      - uses: actions-rs/cargo@v1
+      - uses: actions/cache@v2
         with:
-          command: build
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-${{ hashFiles('../.tool-versions') }}
 
-      - uses: actions-rs/cargo@v1
+      - name: Prepare ruby gems
+        run: |
+          gem install bundler -v 2.2.3
+
+          bundle config path vendor/bundle
+          bundle config jobs 4
+
+          bundle install
+
+      - name: Build shared library
+        run: bundle exec rake thermite:build
+
+      - name: Rust test
+        uses: actions-rs/cargo@v1
         with:
           command: test
 
-      - uses: actions-rs/cargo@v1
+      - name: Clippy
+        uses: actions-rs/cargo@v1
         with:
           command: clippy
 
-      - uses: actions-rs/cargo@v1
+      - name: Rust styling check
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --target ${{ matrix.target }}
+      - name: Ruby styling check
+        run: bundle exec rubocop --display-cop-names
+
+      - name: Tests
+        run: bundle exec rspec
+
+      - name: Package binary extension
+        run: bundle exec rake thermite:tarball
+
+      - name: Build gem
+        env:
+          PER_PLATFORM_BUILD: true
+        run: gem build *.gemspec
 
       - uses: actions/upload-artifact@v2
-        if: ${{ matrix.os != 'windows-latest' }}
         with:
           name: rusty_json_schema-${{ matrix.os }}
-          path: target/${{ matrix.target }}/release/libjson_schema.*
+          path: '*.gem'
 
-      - uses: actions/upload-artifact@v2
-        if: ${{ matrix.os == 'windows-latest' }}
-        with:
-          name: rusty_json_schema-${{ matrix.os }}
-          path: target\${{ matrix.target }}\release\json_schema.*
-
-  build:
-    runs-on: ubuntu-latest
-
+  integration_test:
     needs: [cross_compile]
 
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-${{ hashFiles('../.tool-versions') }}
-
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-
-    - uses: actions/download-artifact@v2
-      with:
-        path: dist/
-
-    - name: Move libs to gem
-      run: |
-        mv dist/rusty_json_schema-macos-latest/* lib/ext/
-        mv dist/rusty_json_schema-ubuntu-latest/* lib/ext/
-        mv dist/rusty_json_schema-windows-latest/* lib/ext/
-
-    - name: Prep gems
-      run: |
-        sudo apt install liburcu-dev
-        gem install bundler -v 2.2.3
-        bundle install --path vendor/bundle
-
-    - name: Styling
-      run: |
-        bundle exec rubocop --display-cop-names
-
-    - name: Tests
-      run: |
-        bundle exec rspec
-
-    - name: Build gem
-      run: |
-        gem build *.gemspec
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: rusty_json_schema.gem
-        path: "*.gem"
-
-  test:
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
+        os:
+          - ubuntu-18.04
+          - ubuntu-20.04
+          - windows-latest
+          - macos-latest
+        ruby:
+          - 2.5.0
+          - 2.6.0
+          - 2.7.0
+          - 3.0.0
 
     runs-on: ${{ matrix.os }}
-    needs: [build]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-    - uses: actions/download-artifact@v2
-      with:
-        name: rusty_json_schema.gem
-    - name: Install gem
-      run: |
-        gem install *.gem
-    - name: Test gem against platform
-      run: |
-        bin/integration
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: rusty_json_schema-${{ (startsWith(matrix.os, 'ubuntu') && 'ubuntu-latest') || matrix.os }}
+
+      - name: Install gem
+        run: gem install *.gem
+
+      - name: Test
+        run: ./bin/integration

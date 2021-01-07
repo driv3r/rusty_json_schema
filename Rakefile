@@ -2,16 +2,25 @@
 
 require "bundler/gem_tasks"
 require "rspec/core/rake_task"
+require "rubocop/rake_task"
+require "thermite/tasks"
+
+require_relative "lib/tasks/thermite_dir_patch"
 
 RSpec::Core::RakeTask.new(:spec)
-
-require "rubocop/rake_task"
-
 RuboCop::RakeTask.new
+thermite = Thermite::Tasks.new
 
-task :rust_build do
-  `cargo rustc --release`
-  `mv -f ./target/release/libjson_schema.so ./lib/ext/`
+namespace :thermite do
+  desc "Make existing extension default one"
+  task :default do
+    next unless File.exist?(thermite.config.ruby_extension_path)
+
+    FileUtils.mv(thermite.config.ruby_extension_path,
+                 "#{thermite.config.ruby_extension_path}.default")
+  end
 end
 
-task default: %i[rust_build spec rubocop]
+Rake::Task["thermite:build"].enhance(["thermite:default"])
+
+task default: %i[thermite:build thermite:test spec rubocop]

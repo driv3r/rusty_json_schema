@@ -1,0 +1,36 @@
+# frozen_string_literal: true
+
+require "thermite/tasks"
+require_relative "../lib/tasks/thermite_dir_patch"
+
+project_dir = File.dirname(File.dirname(__FILE__))
+thermite    = Thermite::Tasks.new(cargo_project_path: project_dir,
+                                  ruby_project_path: project_dir,
+                                  optional_rust_extension: true)
+
+namespace :thermite do
+  desc "Try to build extension if cargo is available or setup default lib"
+  task :build_or_default do
+    if thermite.cargo
+      profile = ENV.fetch("CARGO_PROFILE", "release")
+      thermite.run_cargo_rustc(profile)
+
+      FileUtils.cp(thermite.config.cargo_target_path(profile, thermite.config.cargo_shared_library),
+                   thermite.config.ruby_extension_path)
+    else
+      puts "NOTE: Defaults to pre-build binary => your mileage may vary."
+
+      FileUtils.mv("#{thermite.config.ruby_extension_path}.default",
+                   thermite.config.ruby_extension_path)
+
+      thermite.inform_user_about_cargo
+    end
+  end
+
+  desc "Cleanup cargo artifacts"
+  task :cargo_clean do
+    thermite.run_cargo_if_exists "clean", *thermite.cargo_manifest_path_args
+  end
+end
+
+task default: %w[thermite:build_or_default thermite:cargo_clean]

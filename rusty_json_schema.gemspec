@@ -2,7 +2,7 @@
 
 require_relative "lib/rusty_json_schema/version"
 
-Gem::Specification.new do |spec|
+Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.name        = "rusty_json_schema"
   spec.version     = RustyJSONSchema::VERSION
   spec.authors     = ["Leszek Zalewski"]
@@ -16,6 +16,7 @@ Gem::Specification.new do |spec|
     Currently during heavy development.
   STR
 
+  spec.platform              = Gem::Platform::CURRENT if ENV.key?("PER_PLATFORM_BUILD")
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
@@ -23,9 +24,21 @@ Gem::Specification.new do |spec|
   spec.metadata["source_code_uri"]   = spec.homepage
   spec.metadata["changelog_uri"]     = "https://github.com/driv3r/rusty_json_schema/blob/main/CHANGELOG.md"
 
-  spec.files = Dir["lib/**/*", "src/**/*.rs", "rusty_json_schema.gemspec", "Cargo.toml", "LICENSE", "README.md"]
+  spec.files = Dir[
+    "lib/**/*",
+    "src/**/*.rs",
+    "rusty_json_schema.gemspec",
+    "Cargo.toml",
+    "LICENSE",
+    "README.md",
+    "ext/Rakefile",
+    "ext/json_schema.so.default"
+  ]
 
   spec.require_paths = ["lib"]
+
+  spec.extensions << "ext/Rakefile"
+  spec.add_runtime_dependency "thermite", "~> 0"
 
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "ffi", "~> 1.14"

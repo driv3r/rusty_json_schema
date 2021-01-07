@@ -7,7 +7,9 @@ gemspec
 
 gem "benchmark-ips", require: false
 gem "json_schemer", require: false
-gem "mwrap", require: false
+
+# Uncomment when using locally
+# gem "mwrap", require: false
 
 gem "rake", "~> 13.0"
 gem "rspec", "~> 3.0"
