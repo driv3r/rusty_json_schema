@@ -58,108 +58,78 @@ jobs:
         run: |
           echo MACOSX_DEPLOYMENT_TARGET=10.7 >> $GITHUB_ENV
 
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
+      - name: Prepare ruby gems
+        run: |
+          gem install bundler -v 2.2.3
+          bundle install --path vendor/bundle
 
-      - uses: actions-rs/cargo@v1
+      - name: Build shared library
+        run: bundle exec rake thermite:build
+
+      - name: Rust test
+        uses: actions-rs/cargo@v1
         with:
           command: test
 
-      - uses: actions-rs/cargo@v1
+      - name: Clippy
+        uses: actions-rs/cargo@v1
         with:
           command: clippy
 
-      - uses: actions-rs/cargo@v1
+      - name: Rust styling check
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-      - name: Build shared extension
-        run: |
-          gem install bundler -v 2.2.3
-          bundle install --path vendor/bundle
-          bundle exec rake thermite:tarball
+      - name: Ruby styling check
+        run: bundle exec rubocop --display-cop-names
+
+      - name: Tests
+        run: bundle exec rspec
+
+      - name: Package binary extension
+        run: bundle exec rake thermite:tarball
+
+      - name: Build gem
+        run: gem build *.gemspec
 
       - uses: actions/upload-artifact@v2
         with:
           name: rusty_json_schema-${{ matrix.os }}
-          path: json_schema-*.tar.gz
+          path: '*.gem'
 
-  build:
-    runs-on: ubuntu-latest
-
+  integration_test:
     needs: [cross_compile]
 
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v2
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-${{ hashFiles('../.tool-versions') }}
-
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-
-    - uses: actions/download-artifact@v2
-      with:
-        path: ./
-
-    - name: Prep gems
-      run: |
-        gem install bundler -v 2.2.3
-        bundle install --path vendor/bundle
-
-    - name: Prep shared extension
-      run: |
-        rake thermite:unpack
-
-    - name: Styling
-      run: |
-        bundle exec rubocop --display-cop-names
-
-    - name: Tests
-      run: |
-        bundle exec rspec
-
-    - name: Build gem
-      run: |
-        gem build *.gemspec
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: rusty_json_schema.gem
-        path: "*.gem"
-
-  test:
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, macos-latest, windows-latest]
+        os:
+          - ubuntu-18.04
+          - ubuntu-20.04
+          - windows-latest
+          - macos-latest
+        ruby:
+          - 2.5.0
+          - 2.6.0
+          - 2.7.0
+          - 3.0.0
 
     runs-on: ${{ matrix.os }}
-    needs: [build]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-    - uses: actions/download-artifact@v2
-      with:
-        name: rusty_json_schema.gem
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
 
-    - uses: actions/download-artifact@v2
-      with:
-        name: rusty_json_schema-${{ matrix.os }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: rusty_json_schema-${{ (startsWith(matrix.os, 'ubuntu') && 'ubuntu-latest') || matrix.os }}
 
-    - name: Prep shared extension
-      run: |
-        rake thermite:unpack
+      - name: Install gem
+        run: gem install *.gem
 
-    - name: Install gem
-      run: |
-        gem install *.gem
-
-    - name: Test gem against platform
-      run: |
-        bin/integration
+      - name: Test
+        run: ./bin/integration

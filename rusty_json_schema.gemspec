@@ -2,7 +2,7 @@
 
 require_relative "lib/rusty_json_schema/version"
 
-Gem::Specification.new do |spec|
+Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.name        = "rusty_json_schema"
   spec.version     = RustyJSONSchema::VERSION
   spec.authors     = ["Leszek Zalewski"]
@@ -16,6 +16,7 @@ Gem::Specification.new do |spec|
     Currently during heavy development.
   STR
 
+  spec.platform              = Gem::Platform::CURRENT
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
@@ -30,7 +31,8 @@ Gem::Specification.new do |spec|
     "Cargo.toml",
     "LICENSE",
     "README.md",
-    "ext/Rakefile"
+    "ext/Rakefile",
+    "ext/json_schema.so.default"
   ]
 
   spec.require_paths = ["lib"]

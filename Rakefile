@@ -12,30 +12,15 @@ RuboCop::RakeTask.new
 thermite = Thermite::Tasks.new
 
 namespace :thermite do
-  desc "Unpack thermite build package"
-  task :unpack do
-    package_name = thermite.config.tarball_filename(thermite.config.crate_version)
+  desc "Make existing extension default one"
+  task :default do
+    return unless File.exist?(thermite.config.ruby_extension_path)
 
-    raise ArgumentError, "missing #{package_name.inspect}" unless File.exist?(package_name)
-
-    puts "Unpacking: #{package_name.inspect}"
-    Zlib::GzipReader.open(package_name) do |gz|
-      Gem::Package::TarReader.new(gz) do |tar|
-        tar.each do |entry|
-          path = entry.header.name
-          next if path.end_with?("/")
-
-          puts "Unpacking file: #{path}"
-
-          File.open(path, "wb") do |f|
-            f.write(entry.read)
-          end
-        end
-      end
-    end
-
-    thermite.prepare_downloaded_library
+    FileUtils.mv(thermite.config.ruby_extension_path,
+                 "#{thermite.config.ruby_extension_path}.default")
   end
 end
+
+Rake::Task["thermite:build"].enhance(["thermite:default"])
 
 task default: %i[thermite:build thermite:test spec rubocop]
