@@ -76,7 +76,7 @@ jobs:
 
       - name: Build shared library
         run: |
-          bundle exec rake thermite:build
+          bundle exec rake build
           ls -l ext/
 
       - name: Rust test
