@@ -11,7 +11,8 @@ thermite    = Thermite::Tasks.new(cargo_project_path: project_dir,
 namespace :thermite do
   desc "Try to build extension if cargo is available or setup default lib"
   task :build_or_default do
-    default_ext_path = "#{thermite.config.ruby_extension_path}.#{Gem::Platform.local}.default"
+    platform = "#{Gem::Platform.local.cpu}-#{Gem::Platform.local.os}"
+    default_ext_path = "#{thermite.config.ruby_extension_path}.#{platform}.default"
 
     if thermite.cargo
       profile = ENV.fetch("CARGO_PROFILE", "release")
