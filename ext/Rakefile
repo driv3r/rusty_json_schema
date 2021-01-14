@@ -8,7 +8,7 @@ thermite    = Thermite::Tasks.new(cargo_project_path: project_dir,
                                   ruby_project_path: project_dir,
                                   optional_rust_extension: true)
 
-namespace :thermite do
+namespace :thermite do # rubocop:disable Metrics/BlockLength
   desc "Clean up default binaries"
   task :clean_binnaries do
     puts "Cleaning up"
