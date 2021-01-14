@@ -8,10 +8,19 @@ thermite    = Thermite::Tasks.new(cargo_project_path: project_dir,
                                   ruby_project_path: project_dir,
                                   optional_rust_extension: true)
 
-namespace :thermite do
+namespace :thermite do # rubocop:disable Metrics/BlockLength
+  desc "Clean up default binaries"
+  task :clean_binnaries do
+    puts "Cleaning up"
+    Dir["#{thermite.config.ruby_extension_path}.*.default"].each do |file|
+      FileUtils.rm(file)
+    end
+  end
+
   desc "Try to build extension if cargo is available or setup default lib"
   task :build_or_default do
-    default_ext_path = "#{thermite.config.ruby_extension_path}.#{Gem::Platform.local}.default"
+    platform = "#{Gem::Platform.local.cpu}-#{Gem::Platform.local.os}"
+    default_ext_path = "#{thermite.config.ruby_extension_path}.#{platform}.default"
 
     if thermite.cargo
       profile = ENV.fetch("CARGO_PROFILE", "release")
@@ -39,4 +48,4 @@ namespace :thermite do
   end
 end
 
-task default: %w[thermite:build_or_default thermite:cargo_clean]
+task default: %w[thermite:build_or_default thermite:cargo_clean thermite:clean_binnaries]

@@ -8,6 +8,8 @@ Currently during heavy development.
 
 ## Installation
 
+> **NOTE**: Compilation requires openssl-dev / openssl-devel package
+
 Add this line to your application's Gemfile:
 
 ```ruby

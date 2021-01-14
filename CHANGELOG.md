@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2]
+### Changed
+- Support broader range of MacOS systems with prebuild binaries
+- Cleanup default prebuild binaries after gem installation to reduce used disc space
+
 ## [0.3.1]
 ### Changed
 - Package pre-build binaries together
