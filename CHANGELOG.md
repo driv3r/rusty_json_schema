@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0]
+### Changed
+- update `jsonschema` dependency
+- match versioning with `jsonschema`
+
 ## [0.3.1]
 ### Changed
 - Package pre-build binaries together
