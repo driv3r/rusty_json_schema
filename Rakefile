@@ -18,9 +18,11 @@ task build: ["thermite:build"] do
     next
   end
 
-  puts "Make #{thermite.config.ruby_extension_path} a #{Gem::Platform.local} default implementation"
+  platform = "#{Gem::Platform.local.cpu}-#{Gem::Platform.local.os}"
+
+  puts "Make #{thermite.config.ruby_extension_path} a #{platform} default implementation"
   FileUtils.cp(thermite.config.ruby_extension_path,
-               "#{thermite.config.ruby_extension_path}.#{Gem::Platform.local}.default")
+               "#{thermite.config.ruby_extension_path}.#{platform}.default")
 end
 
 task default: %i[build thermite:test spec rubocop]
