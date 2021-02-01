@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rusty_json_schema (0.3.1)
+    rusty_json_schema (0.5.0)
       ffi (~> 1.14)
       json (>= 1.0)
       thermite (~> 0)
