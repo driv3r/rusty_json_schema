@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1]
+### Changed
+- Update `jsonschema` dependency
+- Update minimum Ruby version to 2.6
+
 ## [0.5.0]
 ### Changed
-- update `jsonschema` dependency
-- match versioning with `jsonschema`
+- Update `jsonschema` dependency
+- Match versioning with `jsonschema`
 
 ## [0.3.2]
 ### Changed
