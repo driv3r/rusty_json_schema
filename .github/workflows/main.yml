@@ -143,10 +143,9 @@ jobs:
           - windows-latest
           - macos-latest
         ruby:
-          - 2.5.0
-          - 2.6.0
-          - 2.7.0
-          - 3.0.0
+          - 2.6
+          - 2.7
+          - 3.0
 
     runs-on: ${{ matrix.os }}
 
