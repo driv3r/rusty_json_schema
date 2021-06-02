@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Update `jsonschema` dependency
 - Update gems
-- Update error messages to include path
+- Update error messages to include path, that's instead of `"rusty" is not of type "numer"` it will be `path "/bar": "rusty" is not of type "number"`
 
 ## [0.6.1]
 ### Changed
