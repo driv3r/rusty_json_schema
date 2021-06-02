@@ -42,7 +42,12 @@ impl Validator {
 
         if let Err(validation_errors) = self.schema.validate(event) {
             for error in validation_errors {
-                errors.push(error.to_string());
+                let path = match format!("{}", error.instance_path).as_str() {
+                    "" => "root".to_string(),
+                    p => p.to_string(),
+                };
+
+                errors.push(format!("{} at {}", error, path));
             }
         }
 
@@ -209,9 +214,9 @@ mod tests {
         let result = unsafe { helper_validate_result_as_vec(raw_result) };
 
         let expectation: Vec<String> = vec![
-            String::from("\'\"rusty\"\' is not of type \'number\'"),
-            String::from("\'1\' is not of type \'string\'"),
-            String::from("\'baz\' is a required property"),
+            String::from("\"rusty\" is not of type \"number\" at /bar"),
+            String::from("1 is not of type \"string\" at /foo"),
+            String::from("\"baz\" is a required property at root"),
         ];
 
         assert_eq!(result, expectation);
