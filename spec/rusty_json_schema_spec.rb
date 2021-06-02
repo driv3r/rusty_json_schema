@@ -63,9 +63,9 @@ RSpec.describe RustyJSONSchema do
 
       it "returns validation errors" do
         expect(validator.validate(event)).to eq [
-          %("rusty" is not of type "number" at /bar),
-          %(1 is not of type "string" at /foo),
-          %("baz" is a required property at root)
+          %(path "/bar": "rusty" is not of type "number"),
+          %(path "/foo": 1 is not of type "string"),
+          %(path "/": "baz" is a required property)
         ]
       end
     end
