@@ -37,16 +37,16 @@ RSpec.describe RustyJSONSchema do
 
     let(:schema) do
       {
-        "properties": {
-          "foo": {
+        properties: {
+          foo: {
             type: "string"
           },
-          "bar": {
+          bar: {
             type: "number"
           },
-          "baz": {}
+          baz: {}
         },
-        "required": ["baz"]
+        required: ["baz"]
       }
     end
 
@@ -63,9 +63,9 @@ RSpec.describe RustyJSONSchema do
 
       it "returns validation errors" do
         expect(validator.validate(event)).to eq [
-          "'\"rusty\"' is not of type 'number'",
-          "'1' is not of type 'string'",
-          "'baz' is a required property"
+          %(path "/bar": "rusty" is not of type "number"),
+          %(path "/foo": 1 is not of type "string"),
+          %(path "/": "baz" is a required property)
         ]
       end
     end

@@ -47,7 +47,7 @@ To get validation errors
 
 ```ruby
 validator.validate(event_json)
-# => ["invalid...", ...]
+# => ["path \"...\": invalid...", ...]
 ```
 
 ## Development
