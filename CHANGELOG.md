@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0]
+### Changed
+- Update `jsonschema` dependency
+- Update gems
+
+### Removed
+- No need to store a copy of the JSON Schema serde Value, as `jsonschema` creates its own copy
+
 ## [0.9.0]
 ### Changed
 - Update `jsonschema` dependency
