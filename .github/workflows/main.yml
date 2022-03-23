@@ -23,9 +23,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
       - name: Set up Rust
         id: toolchain
         uses: actions-rs/toolchain@v1
@@ -50,7 +49,7 @@ jobs:
           brew install gnu-tar
           echo "/usr/local/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             $CARGO_HOME/bin/
@@ -60,15 +59,13 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ steps.toolchain.outputs.rustc_hash}}-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-${{ hashFiles('../.tool-versions') }}
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock')}}-${{ hashFiles('**/.tool-versions') }}
 
       - name: Prepare ruby gems
         run: |
-          gem install bundler -v 2.2.3
-
           bundle config path vendor/bundle
           bundle config jobs 4
 
@@ -112,7 +109,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
 
@@ -150,7 +147,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
