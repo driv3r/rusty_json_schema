@@ -74,7 +74,7 @@ module MemoryUsageSupport
 
         # Wrap within begin in order to ease up GC
         # with separate scope
-        begin # rubocop:disable Style/RedundantBegin
+        begin
           validators = Array.new(@sample) do
             RustyJSONSchema.build(SCHEMA)
           end

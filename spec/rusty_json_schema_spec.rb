@@ -5,7 +5,7 @@ RSpec.describe RustyJSONSchema do
   let(:event) { File.read("spec/fixtures/canada.json") }
 
   it "has a version number" do
-    expect(RustyJSONSchema::VERSION).not_to be nil
+    expect(RustyJSONSchema::VERSION).not_to be_nil
   end
 
   describe ".build" do
@@ -19,7 +19,7 @@ RSpec.describe RustyJSONSchema do
 
     context "when valid event" do
       it "validates event" do
-        expect(validator.valid?(event)).to eq true
+        expect(validator.valid?(event)).to be true
       end
     end
 
@@ -27,7 +27,7 @@ RSpec.describe RustyJSONSchema do
       let(:event) { "[10, 15]" }
 
       it "validates the event" do
-        expect(validator.valid?(event)).to eq false
+        expect(validator.valid?(event)).to be false
       end
     end
   end

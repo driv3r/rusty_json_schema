@@ -7,29 +7,24 @@ use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_uint};
 
 /*
- * Our wrapper struct for schema and schema value,
- * we need to hold onto value in order to not have
- * it freed up, as JSONSchema uses it as reference.
+ * Our wrapper struct for schema, we need to hold
+ * onto value in order to not have it freed up.
  */
 pub struct Validator {
-    schema: &'static JSONSchema<'static>,
-    schema_value: &'static Value,
+    schema: &'static JSONSchema,
 }
 
 impl Validator {
     /*
-     * With Box::leak we avoid freeing up of schema
-     * and schema value, we free them up separately
-     * in the Drop implementation
+     * With Box::leak we avoid freeing up of schema,
+     * we free them up separately in the Drop implementation
      */
     fn new(schema: Value) -> Validator {
-        let boxed_schema: &'static Value = Box::leak(Box::new(schema));
-        let boxed_compile: &'static JSONSchema<'static> =
-            Box::leak(Box::new(JSONSchema::compile(boxed_schema).unwrap()));
+        let boxed_compile: &'static JSONSchema =
+            Box::leak(Box::new(JSONSchema::compile(&schema).unwrap()));
 
         Validator {
             schema: boxed_compile,
-            schema_value: boxed_schema,
         }
     }
 
@@ -63,7 +58,6 @@ impl Drop for Validator {
     fn drop(&mut self) {
         unsafe {
             Box::from_raw(self.schema as *const _ as *mut JSONSchema);
-            Box::from_raw(self.schema_value as *const _ as *mut Value);
         }
     }
 }
